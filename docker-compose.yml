@@ -1,0 +1,60 @@
+version: '3.8'
+
+networks:
+  # Configure a private network with a specific subnet
+  private_net:
+    ipam:
+      config:
+        - subnet: 172.25.0.0/16
+
+services:
+  base_ubuntu:
+    image: ubuntu:latest
+    hostname: base-os
+    networks:
+      private_net:
+        ipv4_address: 172.25.0.10
+    command: tail -f /dev/null
+
+  python_env:
+    build: ./python_app
+    hostname: python-app
+    networks:
+      private_net:
+        ipv4_address: 172.25.0.20
+    command: tail -f /dev/null
+
+  java_env:
+    build: ./java_app
+    hostname: java-app
+    networks:
+      private_net:
+        ipv4_address: 172.25.0.30
+    command: tail -f /dev/null
+
+  web_server:
+    image: nginx:latest
+    hostname: web-server
+    ports:
+      - "80:80"
+    volumes:
+      - ./html:/usr/share/nginx/html:ro
+    networks:
+      private_net:
+        ipv4_address: 172.25.0.40
+    depends_on:
+      - base_ubuntu
+
+  mysql_db:
+    image: mysql:8.0
+    hostname: mysql-server
+    environment:
+      MYSQL_ROOT_PASSWORD: K@r@nDo3ker!2k25
+    networks:
+      private_net:
+        ipv4_address: 172.25.0.50
+    volumes:
+      - mysql_data:/var/lib/mysql
+
+volumes:
+  mysql_data:
